@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "80:80"         # Maps host port 80 to container port 3000
+    environment:
+      - PORT=80
+      # Add more environment variables here as needed
+    restart: unless-stopped

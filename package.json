@@ -1,0 +1,39 @@
+{
+  "name": "monetized-mcp",
+  "version": "0.1.40",
+  "main": "app.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm i && esbuild ./src --bundle --minify --sourcemap --platform=node --target=es2022 --format=esm --outfile=build/index.js --banner:js='import { createRequire } from \"module\"; const require = createRequire(import.meta.url);'",
+    "start": "PORT=80 node build/index.js",
+    "vercel-build": "npm run build"
+  },
+  "type": "module",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.0.0",
+    "axios": "^1.8.4",
+    "monetized-mcp": "0.1.56"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.30",
+    "esbuild": "^0.25.3",
+    "typescript": "^5.8.3"
+  },
+  "description": "A TypeScript utility library for handling payments.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MonetizedMCP/typescript-sdk.git"
+  },
+  "keywords": [
+    "MCP"
+  ],
+  "author": "GuilhermeSantosPlank",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MonetizedMCP/typescript-sdk/issues"
+  },
+  "homepage": "https://github.com/MonetizedMCP/typescript-sdk#readme"
+}
