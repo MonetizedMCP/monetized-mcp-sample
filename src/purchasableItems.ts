@@ -6,7 +6,7 @@ export const purchasableItems = [
       name: "Convert to PDF",
       description: "Convert a website to a PDF",
       price: {
-        amount: 0.5,
+        amount: 0.1,
         paymentMethod: PaymentMethods.USDC_BASE_SEPOLIA,
       },
       params: {

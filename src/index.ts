@@ -46,11 +46,13 @@ export class MCPServer extends MonetizedMCPServer {
   ): Promise<MakePurchaseResponse> {
     try {
       const paymentTools = new PaymentsTools();
+      console.log("purchaseRequest", purchaseRequest);
       const amount = purchasableItems.find(
         (item) =>
           item.id === purchaseRequest.itemId &&
           item.price.paymentMethod === purchaseRequest.paymentMethod
       )?.price.amount;
+      console.log("amount", amount);
 
       if (!amount) {
         return Promise.resolve({
