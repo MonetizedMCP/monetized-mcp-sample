@@ -1,26 +1,28 @@
 {
-  "name": "monetized-mcp",
+  "name": "monetized-mcp-sample",
   "version": "0.1.40",
   "main": "app.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "npm i && esbuild ./src --bundle --minify --sourcemap --platform=node --target=es2022 --format=esm --outfile=build/index.js --banner:js='import { createRequire } from \"module\"; const require = createRequire(import.meta.url);'",
-    "start": "PORT=80 node build/index.js",
+    "build": "tsc && shx chmod +x dist/**/*.js",
+    "start": "PORT=80 node dist/index.js",
     "vercel-build": "npm run build"
   },
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
     "axios": "^1.8.4",
-    "monetized-mcp": "0.1.56"
+    "monetizedmcp-sdk": "0.1.5",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/node": "^20.17.30",
-    "esbuild": "^0.25.3",
-    "typescript": "^5.8.3"
+    "esbuild": "^0.25.4",
+    "typescript": "^5.8.3",
+    "shx": "^0.3.4"
   },
   "description": "A TypeScript utility library for handling payments.",
   "repository": {
