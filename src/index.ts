@@ -1,12 +1,6 @@
 import {
   MonetizedMCPServer,
   PaymentMethodResponse,
-<<<<<<< Updated upstream
-  PricingListingResponse,
-  PurchaseRequest,
-  PurchaseResponse,
-} from "monetized-mcp";
-=======
   PriceListingResponse,
   MakePurchaseRequest,
   MakePurchaseResponse,
@@ -14,7 +8,6 @@ import {
   PaymentMethods,
   PriceListingRequest,
 } from "monetizedmcp-sdk";
->>>>>>> Stashed changes
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
@@ -39,15 +32,8 @@ export class MCPServer extends MonetizedMCPServer {
   paymentMethod(): Promise<PaymentMethodResponse[]> {
     return Promise.resolve([
       {
-<<<<<<< Updated upstream
-        name: "USDC",
-        description: "USDC",
-        sellerAccountId: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
-        paymentMethod: "USDC_BASE_SEPOLIA" as any,
-=======
         walletAddress: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
         paymentMethod: PaymentMethods.USDC_BASE_SEPOLIA,
->>>>>>> Stashed changes
       },
     ]);
   }
@@ -55,12 +41,6 @@ export class MCPServer extends MonetizedMCPServer {
     purchaseRequest: MakePurchaseRequest
   ): Promise<MakePurchaseResponse> {
     try {
-<<<<<<< Updated upstream
-      const pdfBuffers: Buffer[] = [];
-      const s3Urls: string[] = [];
-
-      for (const item of purchaseRequest.items) {
-=======
       const paymentTools = new PaymentsTools();
       const amount = purchasableItems.find(
         (item) => item.id === purchaseRequest.itemId
@@ -90,47 +70,14 @@ export class MCPServer extends MonetizedMCPServer {
         const pdfBuffers: Buffer[] = [];
         const s3Urls: string[] = [];
 
->>>>>>> Stashed changes
         const response = await axios.request({
           method: "post",
           url: "https://api.pdfshift.io/v3/convert/pdf",
           responseType: "arraybuffer",
           data: {
-<<<<<<< Updated upstream
-            source: item.params!.websiteUrl,
-          },
-          auth: { username: "api", password: process.env.PDFSHIFT_API_KEY! },
-=======
             source: purchaseRequest.params!.websiteUrl,
           },
           auth: { username: "api", password: process.env.PDFSHIFT_API_KEY! },
-        });
-
-        const pdfBuffer = response.data;
-        pdfBuffers.push(pdfBuffer);
-
-        const fileName = `pdf-${Date.now()}-${Math.random()
-          .toString(36)
-          .substring(7)}.pdf`;
-        const command = new PutObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET!,
-          Key: fileName,
-          Body: pdfBuffer,
-          ContentType: "application/pdf",
-        });
-
-        await s3Client.send(command);
-        const s3Url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
-        s3Urls.push(s3Url);
-
-        return Promise.resolve({
-          purchasableItemId: purchaseRequest.itemId,
-          makePurchaseRequest: purchaseRequest,
-          orderId: uuidv4(),
-          toolResult: JSON.stringify({
-            pdfs: s3Urls.map((url) => ({ type: "pdf", url })),
-          }),
->>>>>>> Stashed changes
         });
 
         const pdfBuffer = response.data;
@@ -149,33 +96,6 @@ export class MCPServer extends MonetizedMCPServer {
         const s3Url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
         s3Urls.push(s3Url);
       }
-<<<<<<< Updated upstream
-
-      return {
-        items: [
-          {
-            name: "Convert to PDF",
-            description: "Convert a website to a PDF",
-            price: 0.5,
-            currency: "USDC",
-            params: {},
-          },
-        ],
-        purchaseRequest: purchaseRequest,
-        orderId: "123",
-        toolResult: JSON.stringify({
-          pdfs: s3Urls.map(url => ({ type: "pdf", url })),
-        }),
-      };
-    } catch (error: any) {
-      console.log("Error making purchase", error);
-      return {
-        items: [],
-        purchaseRequest: purchaseRequest,
-        orderId: "",
-        toolResult: JSON.stringify({ error: error.message }),
-      };
-=======
       return Promise.resolve({
         purchasableItemId: purchaseRequest.itemId,
         makePurchaseRequest: purchaseRequest,
@@ -185,7 +105,6 @@ export class MCPServer extends MonetizedMCPServer {
     } catch (error) {
       console.error(error);
       throw error;
->>>>>>> Stashed changes
     }
   }
   constructor() {
