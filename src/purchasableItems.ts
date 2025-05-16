@@ -1,9 +1,8 @@
-import { v4 as uuidv4 } from "uuid";
 import { PaymentMethods } from "monetizedmcp-sdk";
 
 export const purchasableItems = [
     {
-      id: uuidv4(),
+      id: "1",
       name: "Convert to PDF",
       description: "Convert a website to a PDF",
       price: {

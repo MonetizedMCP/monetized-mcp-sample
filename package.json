@@ -1,5 +1,5 @@
 {
-  "name": "monetized-mcp-sample",
+  "name": "monetized-mcp",
   "version": "0.1.40",
   "main": "app.ts",
   "files": [
@@ -14,7 +14,7 @@
   "dependencies": {
     "@aws-sdk/client-s3": "^3.0.0",
     "axios": "^1.8.4",
-    "monetizedmcp-sdk": "0.1.5",
+    "monetizedmcp-sdk": "0.1.6",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

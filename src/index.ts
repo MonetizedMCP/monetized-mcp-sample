@@ -11,7 +11,7 @@ import {
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
-import { purchasableItems } from "./purchasableItems";
+import { purchasableItems } from "./purchasableItems.js";
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -21,9 +21,13 @@ const s3Client = new S3Client({
 });
 
 export class MCPServer extends MonetizedMCPServer {
-  pricingListing(pricingListingRequest: PriceListingRequest): Promise<PriceListingResponse> {
+  pricingListing(
+    pricingListingRequest: PriceListingRequest
+  ): Promise<PriceListingResponse> {
     const filteredItems = purchasableItems.filter((item) => {
-      return item.name.toLowerCase().includes(pricingListingRequest.searchQuery?.toLowerCase() ?? "");
+      return item.name
+        .toLowerCase()
+        .includes(pricingListingRequest.searchQuery?.toLowerCase() ?? "");
     });
     return Promise.resolve({
       items: filteredItems,
@@ -43,7 +47,9 @@ export class MCPServer extends MonetizedMCPServer {
     try {
       const paymentTools = new PaymentsTools();
       const amount = purchasableItems.find(
-        (item) => item.id === purchaseRequest.itemId
+        (item) =>
+          item.id === purchaseRequest.itemId &&
+          item.price.paymentMethod === purchaseRequest.paymentMethod
       )?.price.amount;
 
       if (!amount) {
@@ -84,7 +90,9 @@ export class MCPServer extends MonetizedMCPServer {
         pdfBuffers.push(pdfBuffer);
 
         // Upload to S3
-        const fileName = `pdf-${Date.now()}-${Math.random().toString(36).substring(7)}.pdf`;
+        const fileName = `pdf-${Date.now()}-${Math.random()
+          .toString(36)
+          .substring(7)}.pdf`;
         const command = new PutObjectCommand({
           Bucket: process.env.AWS_S3_BUCKET!,
           Key: fileName,
@@ -95,7 +103,16 @@ export class MCPServer extends MonetizedMCPServer {
         await s3Client.send(command);
         const s3Url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
         s3Urls.push(s3Url);
+        return Promise.resolve({
+          purchasableItemId: purchaseRequest.itemId,
+          makePurchaseRequest: purchaseRequest,
+          orderId: uuidv4(),
+          toolResult: JSON.stringify({
+            pdfs: s3Urls.map((url) => ({ type: "pdf", url })),
+          }),
+        });
       }
+      console.log("Error:", payment.error);
       return Promise.resolve({
         purchasableItemId: purchaseRequest.itemId,
         makePurchaseRequest: purchaseRequest,
