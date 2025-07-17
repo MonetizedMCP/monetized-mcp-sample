@@ -121,7 +121,7 @@ export class MCPServer extends MonetizedMCPServer {
           makePurchaseRequest: purchaseRequest,
           orderId: uuidv4(),
           toolResult: JSON.stringify({
-            pdfs: [{ type: "pdf", url: s3Url }],
+            pdfs: s3Urls.map((url) => ({ type: "pdf", url })),
           }),
         };
       }
