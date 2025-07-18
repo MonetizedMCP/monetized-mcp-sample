@@ -1,6 +1,6 @@
 import {
   MonetizedMCPServer,
-  PaymentMethodResponse,
+  PaymentMethodsResponse,
   PriceListingResponse,
   MakePurchaseRequest,
   MakePurchaseResponse,
@@ -21,26 +21,37 @@ const s3Client = new S3Client({
 });
 
 export class MCPServer extends MonetizedMCPServer {
-  pricingListing(
-    pricingListingRequest: PriceListingRequest
-  ): Promise<PriceListingResponse> {
-    const filteredItems = purchasableItems.filter((item) => {
-      return item.name
-        .toLowerCase()
-        .includes(pricingListingRequest.searchQuery?.toLowerCase() ?? "");
-    });
-    return Promise.resolve({
-      items: filteredItems,
-    });
-  }
-  paymentMethod(): Promise<PaymentMethodResponse[]> {
-    return Promise.resolve([
+  async paymentMethods(): Promise<PaymentMethodsResponse[]> {
+    return [
       {
         walletAddress: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
         paymentMethod: PaymentMethods.USDC_BASE_SEPOLIA,
       },
-    ]);
+    ];
   }
+
+  async priceListing(
+    priceListingRequest: PriceListingRequest
+  ): Promise<PriceListingResponse> {
+    const filteredItems = purchasableItems.filter((item) => {
+      return item.name
+        .toLowerCase()
+        .includes(priceListingRequest.searchQuery?.toLowerCase() ?? "");
+    });
+    return {
+      items: filteredItems,
+    };
+  }
+
+  async paymentMethod(): Promise<PaymentMethodsResponse[]> {
+    return [
+      {
+        walletAddress: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
+        paymentMethod: PaymentMethods.USDC_BASE_SEPOLIA,
+      },
+    ];
+  }
+
   async makePurchase(
     purchaseRequest: MakePurchaseRequest
   ): Promise<MakePurchaseResponse> {
@@ -55,12 +66,12 @@ export class MCPServer extends MonetizedMCPServer {
       console.log("amount", amount);
 
       if (!amount) {
-        return Promise.resolve({
+        return {
           purchasableItemId: purchaseRequest.itemId,
           makePurchaseRequest: purchaseRequest,
           orderId: uuidv4(),
           toolResult: "Invalid item ID",
-        });
+        };
       }
 
       const payment = await paymentTools.verifyAndSettlePayment(
@@ -105,27 +116,28 @@ export class MCPServer extends MonetizedMCPServer {
         await s3Client.send(command);
         const s3Url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
         s3Urls.push(s3Url);
-        return Promise.resolve({
+        return {
           purchasableItemId: purchaseRequest.itemId,
           makePurchaseRequest: purchaseRequest,
           orderId: uuidv4(),
           toolResult: JSON.stringify({
             pdfs: s3Urls.map((url) => ({ type: "pdf", url })),
           }),
-        });
+        };
       }
       console.log("Error:", payment.error);
-      return Promise.resolve({
+      return {
         purchasableItemId: purchaseRequest.itemId,
         makePurchaseRequest: purchaseRequest,
         orderId: uuidv4(),
         toolResult: "Payment failed",
-      });
+      };
     } catch (error) {
       console.error(error);
       throw error;
     }
   }
+
   constructor() {
     super();
     super.runMonetizeMCPServer();
