@@ -25,7 +25,7 @@ export class MCPServer extends MonetizedMCPServer {
     return [
       {
         walletAddress: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
-        paymentMethod: PaymentMethods.USDC_BASE_SEPOLIA,
+        paymentMethod: PaymentMethods.USDC_BASE_MAINNET,
       },
     ];
   }
@@ -41,15 +41,6 @@ export class MCPServer extends MonetizedMCPServer {
     return {
       items: filteredItems,
     };
-  }
-
-  async paymentMethod(): Promise<PaymentMethodsResponse[]> {
-    return [
-      {
-        walletAddress: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
-        paymentMethod: PaymentMethods.USDC_BASE_SEPOLIA,
-      },
-    ];
   }
 
   async makePurchase(
