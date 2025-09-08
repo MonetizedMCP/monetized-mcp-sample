@@ -8,18 +8,28 @@ import {
   PaymentMethods,
   PriceListingRequest,
 } from "monetizedmcp-sdk";
+import {
+  SERVER_WALLET_ADDRESS,
+  PDFSHIFT_API_KEY,
+  AWS_S3_BUCKET,
+  AWS_REGION,
+  AWS_ACCESS_KEY_ID,
+  AWS_SECRET_ACCESS_KEY,
+  PDFSHIFT_URL,
+} from "./constants.js";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { v4 as uuidv4 } from "uuid";
 import axios from "axios";
 import {
   filterPurchasableItems,
+  findPurchasableItem,
   purchasableItems,
 } from "./purchasableItems.js";
 const s3Client = new S3Client({
-  region: process.env.AWS_REGION,
+  region: AWS_REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: AWS_ACCESS_KEY_ID,
+    secretAccessKey: AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -27,7 +37,7 @@ export class MCPServer extends MonetizedMCPServer {
   async paymentMethods(): Promise<PaymentMethodsResponse[]> {
     return [
       {
-        walletAddress: "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
+        walletAddress: SERVER_WALLET_ADDRESS,
         paymentMethod: PaymentMethods.USDC_BASE_MAINNET,
       },
     ];
@@ -52,24 +62,24 @@ export class MCPServer extends MonetizedMCPServer {
   ): Promise<MakePurchaseResponse> {
     try {
       const paymentTools = new PaymentsTools();
-      const amount = purchasableItems.find(
-        (item) =>
-          item.id === purchaseRequest.itemId &&
-          item.price.paymentMethod === purchaseRequest.paymentMethod
+      const amount = findPurchasableItem(
+        purchaseRequest.itemId,
+        purchaseRequest.paymentMethod
       )?.price.amount;
+      const orderId = uuidv4();
 
       if (!amount) {
         return {
           purchasableItemId: purchaseRequest.itemId,
           makePurchaseRequest: purchaseRequest,
-          orderId: uuidv4(),
+          orderId: orderId,
           toolResult: "Invalid item ID",
         };
       }
 
       const payment = await paymentTools.verifyAndSettlePayment(
         amount,
-        "0x069B0687C879b8E9633fb9BFeC3fea684bc238D5",
+        SERVER_WALLET_ADDRESS as `0x${string}`,
         {
           facilitatorUrl: "https://x402.org/facilitator",
           paymentHeader: purchaseRequest.signedTransaction,
@@ -84,12 +94,12 @@ export class MCPServer extends MonetizedMCPServer {
 
         const response = await axios.request({
           method: "post",
-          url: "https://api.pdfshift.io/v3/convert/pdf",
+          url: PDFSHIFT_URL,
           responseType: "arraybuffer",
           data: {
             source: purchaseRequest.params!.websiteUrl,
           },
-          auth: { username: "api", password: process.env.PDFSHIFT_API_KEY! },
+          auth: { username: "api", password: PDFSHIFT_API_KEY },
         });
 
         const pdfBuffer = response.data;
@@ -100,19 +110,19 @@ export class MCPServer extends MonetizedMCPServer {
           .toString(36)
           .substring(7)}.pdf`;
         const command = new PutObjectCommand({
-          Bucket: process.env.AWS_S3_BUCKET!,
+          Bucket: AWS_S3_BUCKET,
           Key: fileName,
           Body: pdfBuffer,
           ContentType: "application/pdf",
         });
 
         await s3Client.send(command);
-        const s3Url = `https://${process.env.AWS_S3_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${fileName}`;
+        const s3Url = `https://${AWS_S3_BUCKET}.s3.${AWS_REGION}.amazonaws.com/${fileName}`;
         s3Urls.push(s3Url);
         return {
           purchasableItemId: purchaseRequest.itemId,
           makePurchaseRequest: purchaseRequest,
-          orderId: uuidv4(),
+          orderId: orderId,
           toolResult: JSON.stringify({
             pdfs: s3Urls.map((url) => ({ type: "pdf", url })),
           }),
@@ -121,7 +131,7 @@ export class MCPServer extends MonetizedMCPServer {
       return {
         purchasableItemId: purchaseRequest.itemId,
         makePurchaseRequest: purchaseRequest,
-        orderId: uuidv4(),
+        orderId: orderId,
         toolResult: "Payment failed",
       };
     } catch (error) {
