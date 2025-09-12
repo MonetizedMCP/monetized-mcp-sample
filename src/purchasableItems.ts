@@ -2,11 +2,11 @@ import { PaymentMethods, PurchasableItem } from "monetizedmcp-sdk";
 
 export const purchasableItems = [
   {
-    id: "1",
+    id: "pdfshift-convert",
     name: "Convert to PDF",
     description: "Convert a website to a PDF",
     price: {
-      amount: 0.01,
+      amount: 0.05,
       paymentMethod: PaymentMethods.USDC_BASE_MAINNET,
     },
     params: {
